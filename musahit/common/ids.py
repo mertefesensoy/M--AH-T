@@ -19,7 +19,7 @@ import hashlib
 def article_id(source_id: str, url: str) -> str:
     """Canonical article identifier per ADR-014.
 
-    Returns the hex SHA-256 of ``f"{source_id}|{url}"`` (UTF-8 encoded). The
+    Returns the hex SHA-256 of ``f"{source_id}:{url}"`` (UTF-8 encoded). The
     formula intentionally excludes time and content components so that:
 
     - Re-fetching the same URL from the same source yields the same id
@@ -38,7 +38,7 @@ def article_id(source_id: str, url: str) -> str:
     Returns:
         64-character lowercase hex string suitable for a ``TEXT PRIMARY KEY``.
     """
-    return hashlib.sha256(f"{source_id}|{url}".encode()).hexdigest()
+    return hashlib.sha256(f"{source_id}:{url}".encode()).hexdigest()
 
 
 __all__ = ["article_id"]
