@@ -405,7 +405,7 @@ class TestLinkerSeedWritesTriplet:
             summary="AYM düzenlemenin iptaline karar verdi.",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 1
 
         arc_row = db.execute(
@@ -455,7 +455,7 @@ class TestLinkerJoinUpdatesTriplet:
             summary="Mahkeme bugün tanık dinledi.",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["joined"] == 1
 
         row = db.execute(
@@ -517,7 +517,7 @@ class TestLinkerJoinUpdatesTriplet:
             headline="İkinci başlık",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["joined"] == 2
 
         row = db.execute(
