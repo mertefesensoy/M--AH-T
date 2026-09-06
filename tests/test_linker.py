@@ -238,7 +238,7 @@ class TestClusterMatchesExistingArc:
             article_ids=["a1"],
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["joined"] == 1
         assert result["seeded"] == 0
 
@@ -284,7 +284,7 @@ class TestClusterMatchesExistingArc:
             article_ids=["art1", "art2"],
         )
 
-        await ArcLinker(db).run(RUN_ID)
+        await ArcLinker(db).run(RUN_ID, now=NOW)
 
         # cluster_articles preserved (FK workaround re-INSERTs them).
         members = [
@@ -329,7 +329,7 @@ class TestWatchReturnsToOpen:
             article_ids=["kap1"],
         )
 
-        await ArcLinker(db).run(RUN_ID)
+        await ArcLinker(db).run(RUN_ID, now=NOW)
         state_val = db.execute(
             "SELECT state FROM arcs WHERE id = 'arc_watch_one'"
         ).fetchone()[0]
@@ -360,7 +360,7 @@ class TestNoMatchSeedsArc:
             summary="Anayasa Mahkemesi yeni karar.",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 1
         assert result["joined"] == 0
 
@@ -412,7 +412,7 @@ class TestSeverityOrdering:
             headline="Acute development",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 1
         assert result["joined"] == 1
 
@@ -466,7 +466,7 @@ class TestStopwordOnlyOverlap:
             article_ids=["stop_art"],
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         # Cluster has zero non-stopword entities → match_arc returns None →
         # a new arc is seeded but it carries an empty entity_set.
         assert result["joined"] == 0
@@ -490,8 +490,8 @@ class TestIdempotence:
             article_ids=["art_idem"],
         )
 
-        first = await ArcLinker(db).run(RUN_ID)
-        second = await ArcLinker(db).run(RUN_ID)
+        first = await ArcLinker(db).run(RUN_ID, now=NOW)
+        second = await ArcLinker(db).run(RUN_ID, now=NOW)
 
         assert first["seeded"] == 1
         # Second pass sees no pending clusters (arc_id IS NOT NULL).
@@ -508,7 +508,7 @@ class TestStagesDone:
     async def test_stages_done_appends_arc_link(
         self, db: duckdb.DuckDBPyConnection
     ) -> None:
-        await ArcLinker(db).run(RUN_ID)
+        await ArcLinker(db).run(RUN_ID, now=NOW)
         row = db.execute(
             "SELECT stages_done, counts FROM pipeline_runs WHERE run_id = ?",
             [RUN_ID],
@@ -549,7 +549,7 @@ class TestPeakDefconMinDirection:
             centroid=arc_vec,
             article_ids=["severe1"],
         )
-        await ArcLinker(db).run(RUN_ID)
+        await ArcLinker(db).run(RUN_ID, now=NOW)
         peak = db.execute(
             "SELECT peak_defcon FROM arcs WHERE id = 'arc_peak_test'"
         ).fetchone()[0]
@@ -579,7 +579,7 @@ class TestPeakDefconMinDirection:
             centroid=arc_vec,
             article_ids=["rt1"],
         )
-        await ArcLinker(db).run(RUN_ID)
+        await ArcLinker(db).run(RUN_ID, now=NOW)
         peak = db.execute(
             "SELECT peak_defcon FROM arcs WHERE id = 'arc_peak_no_regress'"
         ).fetchone()[0]
@@ -643,7 +643,7 @@ class TestPromotionLogPreservedAcrossArcUpdate:
             ],
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["joined"] == 1
         assert result["errors"] == 0
 
@@ -699,7 +699,7 @@ class TestSeedArcRollback:
 
         linker._update_cluster_arc_id = _boom  # type: ignore[method-assign]
 
-        result = await linker.run(RUN_ID)
+        result = await linker.run(RUN_ID, now=NOW)
         assert result["errors"] == 1
         assert result["seeded"] == 0
         assert db.execute("SELECT COUNT(*) FROM arcs").fetchone()[0] == 0
@@ -749,7 +749,7 @@ class TestCounterAdvancesOnSeedFailure:
 
         linker._update_cluster_arc_id = _fail_first_two  # type: ignore[method-assign]
 
-        result = await linker.run(RUN_ID)
+        result = await linker.run(RUN_ID, now=NOW)
         # Two failures, one success · the surviving arc must use the
         # advanced counter (the third arc_id), NOT the first one that
         # the cascading bug would have reused.
@@ -807,7 +807,7 @@ class TestSelectPendingExcludesEmptyHeadlineClusters:
             "UPDATE clusters SET headline = '' WHERE id = 'cl_empty_headline'"
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
 
         # Nothing happened · the empty-headline cluster was filtered out.
         assert result["seeded"] == 0
@@ -845,7 +845,7 @@ class TestSelectPendingExcludesEmptyHeadlineClusters:
             "UPDATE clusters SET headline = '     ' WHERE id = 'cl_spaces_only'"
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 0
         assert (
             db.execute(
@@ -877,7 +877,7 @@ class TestSelectPendingExcludesEmptyHeadlineClusters:
             summary="Anayasa Mahkemesi karar verdi.",
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 1
         assert db.execute("SELECT COUNT(*) FROM arcs").fetchone()[0] == 1
 
@@ -906,7 +906,7 @@ class TestSelectPendingExcludesEmptyHeadlineClusters:
             ),
         )
 
-        result = await ArcLinker(db).run(RUN_ID)
+        result = await ArcLinker(db).run(RUN_ID, now=NOW)
         assert result["seeded"] == 1
         # The arc carries the placeholder text directly, NOT an empty
         # value — operator can recognise it in the briefing.

@@ -419,7 +419,6 @@ class TestDryRun:
 
     def test_noop_stage_records_call(self) -> None:
         stage = _NoOpStage("ingest")
-        asyncio.get_event_loop()
         result = asyncio.run(stage.run("run_test"))
         assert stage.called is True
         assert result["dry_run"] is True

@@ -119,9 +119,18 @@ class ArcLinker:
 
     # ── Public ──────────────────────────────────────────────────────────
 
-    async def run(self, run_id: str) -> dict[str, int]:
+    async def run(self, run_id: str, now: datetime | None = None) -> dict[str, int]:
+        """Run a full arc-link pass.
+
+        Args:
+            run_id: The pipeline run whose pending clusters to link.
+            now: Reference instant for the ``WINDOW_DAYS`` active-arc window
+                and the state-transition pass. Defaults to :func:`utcnow`.
+                Tests pin this so the window does not drift with wall clock.
+        """
         log = _log.bind(run_id=run_id)
-        now = utcnow()
+        if now is None:
+            now = utcnow()
 
         cache = self._load_arc_cache(now)
         clusters = self._select_pending(run_id)
