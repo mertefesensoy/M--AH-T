@@ -43,7 +43,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff>=0.5",
-    "pytest>=8.0",
+    # Floor at 9.0.3: PYSEC-2026-1845 - predictable /tmp/pytest-of-{user}
+    # base temp dir on UNIX (local DoS / privilege escalation). Matters
+    # for the shared CI runner, not for local Windows runs.
+    "pytest>=9.0.3",
     "pytest-asyncio>=0.23",
     "pytest-cov>=5.0",
 ]
