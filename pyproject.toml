@@ -30,7 +30,11 @@ dependencies = [
     "jinja2>=3.1",
     "selectolax>=0.3",
     "markdown-it-py>=3.0",
-    "python-multipart>=0.0.9",
+    # Floor at 0.0.31: five DoS / parser-differential advisories against
+    # 0.0.25 and below (PYSEC-2026-3036..3040) — quadratic urlencoded
+    # parsing, `;` treated as a field separator, unbounded part headers,
+    # preamble/epilogue scanning, negative Content-Length.
+    "python-multipart>=0.0.31",
     # TTS (ADR-010 amended 2026-05-23 · Python package · NO subprocess)
     "piper-tts>=1.4.2",
     # MP3 encoding · ffmpeg must be in PATH at runtime (operator install)
