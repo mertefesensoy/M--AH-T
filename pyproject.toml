@@ -10,7 +10,10 @@ requires-python = ">=3.11"
 dependencies = [
     "structlog>=24.0",
     "pydantic>=2.5",
-    "pydantic-settings>=2.2",
+    # Floor at 2.14.2: GHSA-4xgf-cpjx-pc3j — NestedSecretsSettingsSource
+    # followed directory symlinks out of secrets_dir and bypassed the
+    # secrets_dir_max_size cap.
+    "pydantic-settings>=2.14.2",
     "duckdb>=0.10",
     "httpx>=0.27",
     # curl_cffi: browser-impersonating HTTP client for *.gov.tr and similar
